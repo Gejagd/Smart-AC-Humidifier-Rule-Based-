@@ -13,7 +13,7 @@ std::string keputusanAC(float suhu) {
 }
 
 bool isIdealCondition(float suhu, float kelembapan) {
-  // Kondisi ideal: Suhu 24-28 dan Kelembapan 40-50
+
   return (suhu > 24.0 && suhu <= 28.0) &&
          (kelembapan >= 40.0 && kelembapan < 50.0);
 }
