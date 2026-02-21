@@ -1,10 +1,14 @@
 #include <DHT.h>
+#include <DHT_U.h>
+#include <Adafruit_Sensor.h>
+#include <LCD-I2C.h>
 
 #define DHTPIN 2
 #define DHTTYPE DHT22
 #define RELAY_PIN 3
 
 DHT dht(DHTPIN, DHTTYPE);
+LCD_I2C lcd(0x27, 20, 4);
 
 String keputusanAC(float suhu);
 String keputusanHumidifier(float kelembapan);
@@ -12,12 +16,21 @@ bool isIdealCondition(float suhu, float kelembapan);
 
 void setup() {
   Serial.begin(9600);
-  Serial.println("Smart AC-Humidifier System Starting...");
-
+  
   dht.begin();
   pinMode(RELAY_PIN, OUTPUT);
-
   digitalWrite(RELAY_PIN, HIGH);
+
+  lcd.begin(&Wire);
+  lcd.display();
+  lcd.backlight();
+  
+  lcd.setCursor(0, 0);
+  lcd.print("   SMART CLIMATE    ");
+  lcd.setCursor(0, 1);
+  lcd.print("   CONTROL SYSTEM   ");
+  delay(2000);
+  lcd.clear();
 }
 
 void loop() {
@@ -27,7 +40,8 @@ void loop() {
   float t = dht.readTemperature();
 
   if (isnan(h) || isnan(t)) {
-    Serial.println("Gagal membaca dari sensor DHT!");
+    lcd.setCursor(0, 0);
+    lcd.print("SENSOR ERROR!       ");
     return;
   }
 
@@ -41,41 +55,31 @@ void loop() {
     digitalWrite(RELAY_PIN, HIGH);
   }
 
-  Serial.print("Suhu: ");
-  Serial.print(t);
-  Serial.print("C | ");
-  Serial.print("Kelembapan: ");
-  Serial.print(h);
-  Serial.println("%");
-
-  Serial.print("Status AC: ");
-  Serial.println(statusAC);
-  Serial.print("Status Humidifier: ");
-  Serial.println(statusHumidifier);
-
+  lcd.setCursor(0, 0);
+  lcd.print("Suhu: "); lcd.print(t); lcd.print("C     ");
+  lcd.setCursor(0, 1);
+  lcd.print("Hmd : "); lcd.print(h); lcd.print("%     ");
+  
+  lcd.setCursor(0, 2);
+  lcd.print("AC  : "); lcd.print(statusAC); lcd.print("       ");
+  lcd.setCursor(0, 3);
   if (ideal) {
-    Serial.println(">>> SMART POWER MODE: ACTIVE <<<");
+    lcd.print("MODE: SMART POWER   ");
+  } else {
+    lcd.print("HUM : "); lcd.print(statusHumidifier); lcd.print("       ");
   }
-
-  Serial.println("-----------------------------------");
 }
 
 String keputusanAC(float suhu) {
-  if (suhu > 28.0)
-    return "ON";
-  else if (suhu <= 24.0)
-    return "OFF";
-  else
-    return "STANDBY";
+  if (suhu > 28.0) return "ON";
+  else if (suhu <= 24.0) return "OFF";
+  else return "STANDBY";
 }
 
 String keputusanHumidifier(float kelembapan) {
-  if (kelembapan < 40.0)
-    return "ON";
-  else if (kelembapan >= 50.0)
-    return "OFF";
-  else
-    return "STANDBY";
+  if (kelembapan < 40.0) return "ON";
+  else if (kelembapan >= 50.0) return "OFF";
+  else return "STANDBY";
 }
 
 bool isIdealCondition(float suhu, float kelembapan) {
