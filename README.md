@@ -12,6 +12,8 @@
 
 ### "Smart climate choices for a smarter room."
 
+[📖 Baca Tutorial Perakitan Hardware](./TUTORIAL.md)
+
 </div>
 
 ## 🚀 Overview
